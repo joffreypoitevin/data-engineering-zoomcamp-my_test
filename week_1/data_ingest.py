@@ -18,22 +18,26 @@ def default_sql_query(table):
 
 def get_data(my_url=None):
 
-    #if no url is mentioned
-    if my_url is None:
-        trips = pq.read_table("yellow_tripdata_2021-01.parquet")
-        logging.info("no url specified. we get the yellow cab data 2021-01")
-        df = trips.to_pandas()
-        return df
+    if os.path.exists(my_url):
+            logging.info(f"url used to point to a local file. local file {my_url} used.")
+            filename = my_url
+    else:
+        #if no url is mentioned
+        if my_url is None:
+            trips = pq.read_table("yellow_tripdata_2021-01.parquet")
+            logging.info("no url specified. we get the yellow cab data 2021-01")
+            df = trips.to_pandas()
+            return df
 
-    #download data
-    try: 
-        filename = os.path.dirname(os.path.abspath(__file__)) + '/' + os.path.basename(my_url)
-        if os.path.exists(filename):
-            logging.info("datafile already downloaded. Remove it and redownload it.")
-            os.remove(filename)
-        filename = wget.download(my_url)
-    except:
-        raise ValueError("couldn't get data, check url.")
+        #download data
+        try: 
+            filename = os.path.dirname(os.path.abspath(__file__)) + '/' + os.path.basename(my_url)
+            if os.path.exists(filename):
+                logging.info("datafile already downloaded. Remove it and redownload it.")
+                os.remove(filename)
+            filename = wget.download(my_url)
+        except:
+            raise ValueError("couldn't get data, check url.")
 
     #read data accept csv or parquet
     try:
