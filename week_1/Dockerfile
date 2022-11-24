@@ -10,8 +10,6 @@ ARG host="pg_container"
 ARG port="5432" 
 ARG name_db="my_db" 
 ARG name_table="ny_taxi" 
-#ARG url=None
-#ARG sql_query=None
 ARG if_exists="replace"
 
 ENV user=${user} 

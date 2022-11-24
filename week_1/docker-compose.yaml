@@ -40,7 +40,7 @@ services:
       name_db: "my_db"
       name_table: "football_premier_league"
       url: "https://datahub.io/sports-data/english-premier-league/r/season-1819.csv"
-      sql: "SELECT * football_premier_league LIMIT 100;"
+      sql_query: "SELECT * FROM football_premier_league LIMIT 100;"
       if_exists: "replace"
 
 networks:
