@@ -1,0 +1,48 @@
+version: '3.8'
+services:
+  pgdatabase:
+    container_name: pg_container
+    image: postgres:13
+    networks:
+      - my-network-name
+    volumes:
+       - C://Users//joffr//Desktop//data-engineering-zoomcamp//week_1_basics_n_setup//my_test//week_1:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=week_1
+    ports:
+      - "5432:5432"
+  pgadmin:
+    container_name: pgadmin4_container
+    image: dpage/pgadmin4
+    networks:
+      - my-network-name
+    environment:
+      - PGADMIN_DEFAULT_EMAIL=joffreympoitevin@gmail.com
+      - PGADMIN_DEFAULT_PASSWORD=root
+    ports:
+      - "80:80"
+  data_ingest:
+    container_name: ingest_container
+    image: ingest_script
+    depends_on:
+      - pgdatabase
+    networks:
+      - my-network-name
+    build:
+      context: "../C://Users//joffr//Desktop//data-engineering-zoomcamp//week_1_basics_n_setup//my_test//"
+    environment:
+      user: "root" 
+      password: "root"
+      host: "pg_container"
+      port: "5432"
+      name_db: "my_db"
+      name_table: "football_premier_league"
+      url: "https://datahub.io/sports-data/english-premier-league/r/season-1819.csv"
+      sql: "SELECT * football_premier_league LIMIT 100;"
+      if_exists: "replace"
+
+networks:
+  my-network-name:
+   name: ingest_network
