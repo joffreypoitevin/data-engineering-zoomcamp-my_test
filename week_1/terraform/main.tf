@@ -33,6 +33,7 @@ resource "google_storage_bucket" "data-lake-bucket" {
     enabled = true
   }
 
+
   lifecycle_rule {
     condition {
       age = 30 //
@@ -41,6 +42,7 @@ resource "google_storage_bucket" "data-lake-bucket" {
       type = "Delete"
     }
   }  
+
 
 
 }                                     //blocks to define components of your infrastructure
