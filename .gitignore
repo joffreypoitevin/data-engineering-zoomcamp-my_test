@@ -15,4 +15,4 @@ serving_dir
 *.csv
 .ipynb_checkpoints/
 !week_6_stream_processing/avro_example/data/rides.csv
-**school-378918-cbc2e51e8f6d.json
+**school_project_credentials.json
