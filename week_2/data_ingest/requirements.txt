@@ -1,0 +1,7 @@
+pandas
+pyarrow
+sqlalchemy 
+psycopg2
+wget
+argparse
+sqlalchemy_utils
