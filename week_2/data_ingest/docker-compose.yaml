@@ -1,12 +1,12 @@
 version: '3.8'
 services:
   pgdatabase:
-    container_name: pg_container
-    image: postgres:13
+    container_name: postgres
+    image: postgres:15.3-bullseye
     networks:
       - ingest_network
     volumes:
-       - C://Users//joffr//Desktop//data-engineering-zoomcamp-my_test//week_2//data_ingest//:/var/lib/postgresql/data
+       - C://Users//joffr//Desktop//data-engineering-zoomcamp-my_test//week_2//data_ingest//postgres_db:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
@@ -35,7 +35,7 @@ services:
     environment:
       user: "root" 
       password: "root"
-      host: "pg_container"
+      host: "postgres"
       port: "5432"
       name_db: "week_2"
       name_table: "football_premier_league"

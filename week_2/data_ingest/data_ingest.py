@@ -195,7 +195,7 @@ if __name__ == "__main__":
     # Add arguments database
     parser.add_argument('--user', default=str(os.environ.get('user', 'root')), type=str)
     parser.add_argument('--password', default=str(os.environ.get('password', 'root')), type=str)
-    parser.add_argument('--host', default=str(os.environ.get('host', 'pg_container')), type=str)
+    parser.add_argument('--host', default=str(os.environ.get('host', 'postgres')), type=str)
     parser.add_argument('--port', default=str(os.environ.get('port', '5432')), type=str)
     parser.add_argument('--name_db', default=str(os.environ.get('name_db', 'week_2')), type=str)
     parser.add_argument('--name_table', default=str(os.environ.get('name_table', 'ny_taxi')), type=str)
@@ -210,6 +210,8 @@ if __name__ == "__main__":
     params = parser.parse_args()
 
     main(params)
+
+    logging.info("EVERYTHING WORKED FINE")
 
 
 

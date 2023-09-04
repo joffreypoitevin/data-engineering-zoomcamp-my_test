@@ -16,3 +16,5 @@ serving_dir
 .ipynb_checkpoints/
 !week_6_stream_processing/avro_example/data/rides.csv
 **school_project_credentials.json
+week_1/terraform/school_project_credentials.txt
+week_2/data_ingest/postgres_db/

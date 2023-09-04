@@ -6,9 +6,9 @@ RUN pip install -r requirements.txt
 
 ARG user="root" 
 ARG password="root" 
-ARG host="pg_container" 
+ARG host="postgres" 
 ARG port="5432" 
-ARG name_db="my_db" 
+ARG name_db="week_2" 
 ARG name_table="ny_taxi" 
 ARG if_exists="replace"
 
