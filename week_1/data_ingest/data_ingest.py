@@ -1,3 +1,4 @@
+from datetime import timedelta
 import pyarrow.parquet as pq
 from sqlalchemy import *
 import psycopg2
@@ -7,6 +8,7 @@ import argparse
 import logging
 import os 
 from sqlalchemy_utils import *
+import prefect
 
 ### SCRIPT TO INGEST DATA AND QUERY ###
 
@@ -18,6 +20,8 @@ logging.basicConfig(level=logging.INFO)
 def default_sql_query(table):
     return f"""SELECT COUNT(*) FROM {table}"""
 
+
+@prefect.task(logs=True, retries=3, retry_delay=timedelta(minutes=1), cache_for=timedelta(days=1))
 def get_data(my_url=None):
 
     """
@@ -62,6 +66,7 @@ def get_data(my_url=None):
     logging.info(f"filename {filename} downloaded and stored as pandas df")
     return df
 
+@prefect.task(logs=True, retries=3, retry_delay=timedelta(minutes=1), cache_for=timedelta(days=1))
 def store_table_in_db(df,user,password,host,port,name_db, name_table, if_exists='replace'):
     """
     function that stored the df into the db
@@ -102,7 +107,27 @@ def store_table_in_db(df,user,password,host,port,name_db, name_table, if_exists=
             logging.info("data was not stored.")
             pass 
 
+@prefect.Flow(name='subflow_collect_store_data')
+def subflow_collect_store_data(user,password,host,port,name_db, name_table, if_exists='replace',my_url=None ):
+    """_summary_
 
+    Args:
+        user (_type_): _description_
+        password (_type_): _description_
+        host (_type_): _description_
+        port (_type_): _description_
+        name_db (_type_): _description_
+        name_table (_type_): _description_
+        if_exists (str, optional): _description_. Defaults to 'replace'.
+        my_url (_type_, optional): _description_. Defaults to None.
+    """
+    data = get_data(my_url)
+    store_table_in_db(data,user,password,host,port,name_db, name_table, if_exists='replace')
+
+
+
+
+@prefect.task(logs=True, retries=3, retry_delay=timedelta(minutes=1), cache_for=timedelta(days=1))
 def query_data_from_table(user,password,host,port,name_db, name_table, sql_query=None):
     """ query to operate in the db
 
@@ -130,35 +155,69 @@ def query_data_from_table(user,password,host,port,name_db, name_table, sql_query
         query = conn.execute(text(sql_query)) 
     
     return pd.DataFrame(query.fetchall())
-  
 
-def main(params):
+@prefect.task(logs=True, retries=3, retry_delay=timedelta(minutes=1), cache_for=timedelta(days=1))
+def transform_data(df):
+    """_summary_
+
+    Args:
+        df (_type_): _description_
+
+    Returns:
+        _type_: _description_
     """
-    execute the whole pipeline:
-    -get_data
-    -store_data
-    -query_data
-
-
-    user = params.user default: root
-    password = params.password default: root
-    host = params.host default pg_admin (container name of postresql image)
-    port = params.port default 5432 (port of pg_admin container)
-    name_db = params.name_db (default: my_db)
-    name_table = params.name_table (default ny_taxi) table that is stored by default.
-    url=params.url default None, ny_taxi data (yellow_tripdata_2021-01.parquet) by default
-    sql_query: count by default
-
-    return: query data
+    df['transformation'] = "this is an artificial transformation just to practice prefect"
     
+    return df
+
+@prefect.flow(name='subflow_query_transform_data')
+def subflow_query_transform_data(user,password,host,port,name_db, name_table, sql_query=None):
+    """_summary_
+
+    Args:
+        user (_type_): _description_
+        password (_type_): _description_
+        host (_type_): _description_
+        port (_type_): _description_
+        name_db (_type_): _description_
+        name_table (_type_): _description_
+        sql_query (_type_, optional): _description_. Defaults to None.
+    """
+    data = query_data_from_table(user,password,host,port,name_db, name_table, sql_query=None)
+    transformed_data = transform_data(data)
+
+    return transformed_data
+
+@prefect.task(logs=True, retries=3, retry_delay=timedelta(minutes=1), cache_for=timedelta(days=1))
+def collect_db_credentials(params):
     """
 
-    #database params
+    Args:
+        params (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+
+        #database params
     user = params.user
     password = params.password
     host = params.host
     port = params.port
     name_db = params.name_db
+
+    return user, password, host, port, name_db
+
+@prefect.task(logs=True, retries=3, retry_delay=timedelta(minutes=1), cache_for=timedelta(days=1))
+def collect_needed_data(params):
+    """
+
+    Args:
+        params (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
     name_table = params.name_table
     if params.if_exists:
         if_exists = params.if_exists
@@ -176,16 +235,57 @@ def main(params):
     else:
         sql_query = default_sql_query(name_table)
 
-    #collect data
-    df = get_data(url)
+    return name_table, if_exists, url, sql_query 
 
-    #store data
-    store_table_in_db(df,user,password,host,port,name_db, name_table, if_exists)
+@prefect.flow(name="handle_parameters")
+def subflow_handle_parameters(params):
+    """_summary_
+
+    Args:
+        params (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+    user, password, host, port, name_db = collect_db_credentials(params)
+
+    name_table, if_exists, url, sql_query = collect_needed_data(params)
+
+    return user, password, host, port, name_db, name_table, if_exists, url, sql_query
+
+
+@prefect.flow(name="collect_store_query_data")
+def mainflow(params):
+    """
+    execute the whole pipeline:
+    -get_data
+    -store_data
+    -query_data
+    -transform_data
+
+
+    user = params.user default: root
+    password = params.password default: root
+    host = params.host default pg_admin (container name of postresql image)
+    port = params.port default 5432 (port of pg_admin container)
+    name_db = params.name_db (default: my_db)
+    name_table = params.name_table (default ny_taxi) table that is stored by default.
+    url=params.url default None, ny_taxi data (yellow_tripdata_2021-01.parquet) by default
+    sql_query: count by default
+
+    return: query data
+    
+    """
+    #collect db credentials and data information
+    user, password, host, port, name_db, name_table, if_exists, url, sql_query= subflow_handle_parameters(params)
+
+    #collect data and store data
+    subflow_collect_store_data(user,password,host,port,name_db, name_table, if_exists, url)
 
     #simple query
-    df_query = query_data_from_table(user,password,host,port,name_db, name_table, sql_query)
+    data = subflow_query_transform_data(user,password,host,port,name_db, name_table, sql_query)
 
-    return print(df_query)
+    return print(data)
 
 if __name__ == "__main__":
 
@@ -209,7 +309,7 @@ if __name__ == "__main__":
     #parse arguments
     params = parser.parse_args()
 
-    main(params)
+    mainflow(params)
 
 
 
