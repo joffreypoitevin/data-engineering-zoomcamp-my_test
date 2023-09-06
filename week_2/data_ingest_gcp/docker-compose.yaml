@@ -6,7 +6,7 @@ services:
     networks:
       - ingest_network
     volumes:
-       - C://Users//joffr//Desktop//data-engineering-zoomcamp-my_test//week_2//data_ingest_gcp//postgres_db:/var/lib/postgresql/data
+       - /home/joffr/data-engineering-zoomcamp-my_test/week_2/data_ingest_gcp//postgres_db:/var/lib/postgresql/data
     environment:
       - POSTGRES_USER=root
       - POSTGRES_PASSWORD=root
@@ -25,7 +25,7 @@ services:
       - "80:80"
   data_ingest:
     container_name: ingest_container
-    image: ingest_script
+    image: data_ingest
     depends_on:
       - pgdatabase
     networks:
