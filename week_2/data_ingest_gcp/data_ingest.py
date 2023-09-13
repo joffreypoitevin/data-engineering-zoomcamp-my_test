@@ -10,6 +10,7 @@ import os
 from sqlalchemy_utils import *
 import prefect
 from prefect.tasks import task_input_hash
+import pyarrow as pa
 
 ### SCRIPT TO INGEST DATA AND QUERY ###
 
@@ -254,6 +255,26 @@ def subflow_handle_parameters(params):
 
     return user, password, host, port, name_db, name_table, if_exists, url, sql_query
 
+@prefect.task(log_prints=True, retries=3, cache_key_fn=task_input_hash ,cache_expiration=timedelta(days=1))
+def write_data_locally_pq(data):
+    """ write data locally 
+
+    Args:
+        pd dataframe: path to the data
+
+    Returns:
+        None
+    """
+    # Specify the file path for the Parquet file
+    parquet_file_path = 'transformed_data.gz'
+
+    # Create a PyArrow Table from the Pandas DataFrame
+    table = pa.Table.from_pandas(data)
+
+    # Write the Table to a Parquet file with gzip compression
+    pq.write_table(table, parquet_file_path, compression='gzip')
+
+    print(f'DataFrame written to {parquet_file_path} in gzip-compressed Parquet format.')  
 
 @prefect.flow(name="collect_store_query_data")
 def mainflow(params):
