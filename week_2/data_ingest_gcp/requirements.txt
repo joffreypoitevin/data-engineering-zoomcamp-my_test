@@ -7,3 +7,4 @@ argparse
 sqlalchemy_utils
 prefect
 prefect-sqlalchemy
+prefect_gcp
