@@ -1,0 +1,22 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+
+
+        {
+            "name": "Python: Current File",
+            "type": "python",
+            "request": "launch",
+            "program": "/home/joffr/data-engineering-zoomcamp-my_test/week_1/data_ingest/data_ingest.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "python": "${workspaceFolder}/venv/bin/python",
+            "args": [
+                "--url", "https://datahub.io/sports-data/english-premier-league/r/season-1819.csv"
+            ]
+        }
+    ]
+}
