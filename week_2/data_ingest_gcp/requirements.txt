@@ -1,7 +1,7 @@
 pandas
 pyarrow
 sqlalchemy 
-psycopg2
+psycopg2-binary
 wget
 argparse
 sqlalchemy_utils
