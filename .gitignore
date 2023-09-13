@@ -19,3 +19,4 @@ serving_dir
 week_1/terraform/school_project_credentials.txt
 week_2/data_ingest/postgres_db/
 week_2/data_ingest_gcp/postgres_db/
+gcloud/gcs_gbq.json
