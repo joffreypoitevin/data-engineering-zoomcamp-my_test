@@ -131,7 +131,6 @@ def subflow_collect_store_data(user,password,host,port,name_db, name_table, if_e
 
 
 
-
 @prefect.task(log_prints=True, retries=3, cache_key_fn=task_input_hash ,cache_expiration=timedelta(days=1))
 def query_data_from_table(user,password,host,port,name_db, name_table, sql_query=None):
     """ query to operate in the db
@@ -171,7 +170,7 @@ def transform_data(df):
     Returns:
         _type_: _description_
     """
-    df['transformation'] = "this is an artificial transformation just to practice prefect"
+    df['transformation'] = "data_has been transformed to be stored in GCS"
     
     return df
 
@@ -258,7 +257,7 @@ def subflow_handle_parameters(params):
 
     return user, password, host, port, name_db, name_table, if_exists, url, sql_query
 
-@prefect.task(log_prints=True, retries=3, cache_key_fn=task_input_hash ,cache_expiration=timedelta(days=1))
+@prefect.task(log_prints=True, retries=3)
 def write_data_locally_pq(data):
     """ write data locally 
 
@@ -269,7 +268,7 @@ def write_data_locally_pq(data):
         None
     """
     # Specify the file path for the Parquet file
-    parquet_file_path = 'transformed_data.gz'
+    parquet_file_path = 'transformed_data.parquet.gz'
 
     # Create a PyArrow Table from the Pandas DataFrame
     table = pa.Table.from_pandas(data)
@@ -293,9 +292,9 @@ def write_on_gcs(parquet_file_path):
     """
 
     gcs_bucket_block = GcsBucket.load("gcsgcp")
-    gcs_bucket_block.upload_from_path(parquet_file_path)
+    gcs_path = gcs_bucket_block.upload_from_path(parquet_file_path)
 
-    print(f' File {parquet_file_path} written on gcs_bucket/week_2.')  
+    print(f' File {parquet_file_path} written on {gcs_path}.')  
 
     
 @prefect.flow(name="store_transformed_df_on_gcs")
