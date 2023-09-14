@@ -23,7 +23,7 @@ logging.basicConfig(level=logging.INFO)
 
 #default query used
 def default_sql_query(table):
-    return f"""SELECT COUNT(*) FROM {table}"""
+    return f"""SELECT * FROM {table} limit 100"""
 
 
 @prefect.task(log_prints=True, retries=3, cache_key_fn=task_input_hash ,cache_expiration=timedelta(days=1))
@@ -71,7 +71,7 @@ def get_data(my_url=None):
     logging.info(f"filename {filename} downloaded and stored as pandas df")
     return df
 
-@prefect.task(log_prints=True, retries=3, cache_key_fn=task_input_hash ,cache_expiration=timedelta(days=1))
+@prefect.task(log_prints=True, retries=3)
 def store_table_in_db(df,user,password,host,port,name_db, name_table, if_exists='replace'):
     """
     function that stored the df into the db
@@ -131,8 +131,8 @@ def subflow_collect_store_data(user,password,host,port,name_db, name_table, if_e
 
 
 
-@prefect.task(log_prints=True, retries=3, cache_key_fn=task_input_hash ,cache_expiration=timedelta(days=1))
-def query_data_from_table(user,password,host,port,name_db, name_table, sql_query=None):
+@prefect.task(log_prints=True)
+def query_data_from_table(user,password,host,port,name_db, name_table, sql_query):
     """ query to operate in the db
 
     Args:
@@ -153,14 +153,13 @@ def query_data_from_table(user,password,host,port,name_db, name_table, sql_query
 
     if sql_query is None:
         sql_query = default_sql_query(name_table)
-        logging.info("default query: count") 
     #perfom query from db
     with db.connect().execution_options(autocommit=True) as conn:
         query = conn.execute(text(sql_query)) 
     
     return pd.DataFrame(query.fetchall())
 
-@prefect.task(log_prints=True, retries=3, cache_key_fn=task_input_hash ,cache_expiration=timedelta(days=1))
+@prefect.task(log_prints=True, retries=3)
 def transform_data(df):
     """_summary_
 
@@ -170,7 +169,11 @@ def transform_data(df):
     Returns:
         _type_: _description_
     """
-    df['transformation'] = "data_has been transformed to be stored in GCS"
+    df = df.iloc[:, :10]
+    df['transformation_to_gcs'] = "data_has been transformed to be stored in GCS"
+
+    print("DF QUERIED")
+    print(df)
     
     return df
 
@@ -280,7 +283,7 @@ def write_data_locally_pq(data):
 
     return parquet_file_path 
 
-@prefect.task(log_prints=True, retries=3, cache_key_fn=task_input_hash ,cache_expiration=timedelta(days=1))
+@prefect.task(log_prints=True, retries=3)
 def write_on_gcs(parquet_file_path):
     """_summary_
 

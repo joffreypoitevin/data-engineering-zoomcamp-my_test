@@ -30,7 +30,7 @@ def extract_from_gcs(file='transformed_data.parquet.gz'):
     
     return  Path(data_name).resolve()
 
-@prefect.task(log_prints=True, retries=3, cache_key_fn=task_input_hash ,cache_expiration=timedelta(days=1))
+@prefect.task(log_prints=True, retries=3)
 def transform_data_for_bq(path_file):
     """_summary_
 
@@ -51,7 +51,7 @@ def transform_data_for_bq(path_file):
 
     return df
 
-@prefect.task(log_prints=True, retries=3, cache_key_fn=task_input_hash ,cache_expiration=timedelta(days=1))
+@prefect.task(log_prints=True, retries=3)
 def write_to_bq(df):
     """
 
@@ -61,7 +61,7 @@ def write_to_bq(df):
     #get credential block
     gcp_credentials_block = GcpCredentials.load("gcpcredential")
 
-    df.to_gbq(destination_table= "week_2_data.gxs_to_bq_test", project_id="datacamp-392412", credentials = gcp_credentials_block.get_credentials_from_service_account() , if_exists="replace", chunksize=500_000)
+    df.to_gbq(destination_table= "week_2_data.gcs_to_bq_test", project_id="datacamp-392412", credentials = gcp_credentials_block.get_credentials_from_service_account() , if_exists="replace", chunksize=500_000)
 
 
 @prefect.flow(name="from_gcs_transform_to_bq")
