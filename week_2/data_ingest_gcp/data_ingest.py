@@ -11,6 +11,9 @@ from sqlalchemy_utils import *
 import prefect
 from prefect.tasks import task_input_hash
 import pyarrow as pa
+from prefect_gcp import GcpCredentials, GcsBucket
+from pathlib import Path
+
 
 ### SCRIPT TO INGEST DATA AND QUERY ###
 
@@ -274,7 +277,42 @@ def write_data_locally_pq(data):
     # Write the Table to a Parquet file with gzip compression
     pq.write_table(table, parquet_file_path, compression='gzip')
 
-    print(f'DataFrame written to {parquet_file_path} in gzip-compressed Parquet format.')  
+    print(f'DataFrame written to {parquet_file_path} in gzip-compressed Parquet format.') 
+
+    return parquet_file_path 
+
+@prefect.task(log_prints=True, retries=3, cache_key_fn=task_input_hash ,cache_expiration=timedelta(days=1))
+def write_on_gcs(parquet_file_path):
+    """_summary_
+
+    Args:
+        path (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+
+    gcs_bucket_block = GcsBucket.load("gcsgcp")
+    gcs_bucket_block.upload_from_path(parquet_file_path)
+
+    print(f' File {parquet_file_path} written on gcs_bucket/week_2.')  
+
+    
+@prefect.flow(name="store_transformed_df_on_gcs")
+def subflow_store_on_gcs(data):
+    """_summary_
+
+    Args:
+        data (_type_): _description_
+
+    Returns:
+        _type_: _description_
+    """
+
+    parquet_file_path = write_data_locally_pq(data)
+
+    write_on_gcs(parquet_file_path)
+
 
 @prefect.flow(name="collect_store_query_data")
 def mainflow(params):
@@ -307,7 +345,10 @@ def mainflow(params):
     #simple query
     data = subflow_query_transform_data(user,password,host,port,name_db, name_table, sql_query)
 
-    return print(data)
+    #store data locally and on gcs
+    subflow_store_on_gcs(data)
+
+
 
 if __name__ == "__main__":
 

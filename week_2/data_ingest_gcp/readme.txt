@@ -24,3 +24,5 @@ docker compose up -d
 
 #start prefect orion User Interface
 prefect server start
+#create a block
+prefect block register -m prefect_gcp
