@@ -7,3 +7,6 @@ argparse
 sqlalchemy_utils
 prefect
 prefect-sqlalchemy
+prefect_gcp
+pathlib
+pandas-gbq

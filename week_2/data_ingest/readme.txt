@@ -20,3 +20,8 @@ docker run --network=ingest_network -e name_table="football_premier_league" -e u
 #-pgadmin
 #-data_ingest.py (dockerfile)
 docker compose up -d 
+
+#start prefect orion User Interface
+prefect server start
+#create a block
+prefect block register -m prefect_gcp
