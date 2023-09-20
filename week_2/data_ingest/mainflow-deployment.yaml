@@ -1,0 +1,94 @@
+###
+### A complete description of a Prefect Deployment for flow 'collect_storeDB_query_storeGCS_storeGBQ'
+###
+name: PARAMETRIZED
+description: |-
+  execute the whole pipeline:
+  -get_data
+  -store_data
+  -query_data
+  -transform_data
+
+
+  user = params.user default: root
+  password = params.password default: root
+  host = params.host default pg_admin (container name of postresql image)
+  port = params.port default 5432 (port of pg_admin container)
+  name_db = params.name_db (default: my_db)
+  name_table = params.name_table (default ny_taxi) table that is stored by default.
+  url=params.url default None, ny_taxi data (yellow_tripdata_2021-01.parquet) by default
+  sql_query: count by default
+
+  return: query data
+version: 4bbe8d00f8a034cdd410a6220e1e1b42
+# The work queue that will handle this deployment's runs
+work_queue_name: default
+work_pool_name: null
+tags: []
+parameters: {"user": "root", "password": "root", "host": "localhost", "port": 5432, "name_db": "week_2" ,"name_table": "football_premier_league", "url": ["https://datahub.io/sports-data/english-premier-league/r/season-1617.csv","https://datahub.io/sports-data/english-premier-league/r/season-1718.csv","https://datahub.io/sports-data/english-premier-league/r/season-1819.csv"], "if_exists": "replace", "sql_query": None}
+schedule: null
+is_schedule_active: null
+infra_overrides: {}
+infrastructure:
+  type: process
+  env: {}
+  labels: {}
+  name: null
+  command: null
+  stream_output: true
+  working_dir: null
+  block_type_slug: process
+  _block_type_slug: process
+
+###
+### DO NOT EDIT BELOW THIS LINE
+###
+flow_name: collect_storeDB_query_storeGCS_storeGBQ
+manifest_path: null
+storage: null
+path: C:\Users\joffr\Desktop\data-engineering-zoomcamp-my_test\week_2\data_ingest
+entrypoint: parametrized.py:mainflow
+parameter_openapi_schema:
+  title: Parameters
+  type: object
+  properties:
+    user:
+      title: user
+      position: 0
+    password:
+      title: password
+      position: 1
+    host:
+      title: host
+      position: 2
+    port:
+      title: port
+      position: 3
+    name_db:
+      title: name_db
+      position: 4
+    name_table:
+      title: name_table
+      position: 5
+    if_exists:
+      title: if_exists
+      position: 6
+    url:
+      title: url
+      position: 7
+    sql_query:
+      title: sql_query
+      position: 8
+  required:
+  - user
+  - password
+  - host
+  - port
+  - name_db
+  - name_table
+  - if_exists
+  - url
+  - sql_query
+  definitions: null
+timestamp: '2023-09-20T13:31:53.930130+00:00'
+triggers: []
