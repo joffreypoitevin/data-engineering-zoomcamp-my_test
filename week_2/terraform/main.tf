@@ -12,7 +12,7 @@ terraform {
                       }
 }
 provider "google" {
-    credentials = file("school_project_credentials.json")
+    credentials = file("gcs_gbq_credentials.json")
     project     = var.project_id
     region      = var.region                    //adds a set of resource types and/or data sources that Terraform can manage
                                                     // The Terraform Registry is the main directory of publicly available providers from most major infrastructure platforms.
@@ -57,7 +57,9 @@ resource "google_storage_bucket_object" "bucket_object" {
 resource "google_storage_bucket_object" "week_2_folder" {
   name   = "week_2/"
   bucket = google_storage_bucket.data-lake-bucket.name 
+  source = "hello_terraform_bitbucket_storage.txt"
 }
+
 # DWH
 # Ref: https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/bigquery_dataset
 resource "google_bigquery_dataset" "dataset_football" {

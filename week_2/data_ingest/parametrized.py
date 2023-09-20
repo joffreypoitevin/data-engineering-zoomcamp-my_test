@@ -72,6 +72,9 @@ def get_data(my_url=None):
     logging.info(f"filename {filename} downloaded and stored as pandas df")
     print(f"filename {filename} downloaded and stored as pandas df")
     print(df)
+    os.remove(filename)
+    print(f"filename {filename} removed")
+
     return df
 
 @prefect.task(log_prints=True)#, retries=3, cache_key_fn=task_input_hash ,cache_expiration=timedelta(days=1))
@@ -311,7 +314,9 @@ def write_on_gcs(csv_file_path):
     gcs_bucket_block = GcsBucket.load("gcs-bucket")
     gcs_path = gcs_bucket_block.upload_from_path(csv_file_path)
 
-    print(f' File {csv_file_path} written on {gcs_path}.')  
+    print(f' File {csv_file_path} written on {gcs_path}.')
+    os.remove(csv_file_path)  
+    print(f"remove {csv_file_path}")
 
     
 @prefect.flow(name="store_transformed_df_on_gcs")
@@ -340,7 +345,7 @@ def subflow_store_on_gbq(path_from_gcs, file_name):
     
     print("PATH TO GCS")
     print(path_from_gcs)
-    
+
     #get credential block
     gcp_credentials_block = GcpCredentials.load("gcp-credentials")
 
